@@ -1,4 +1,4 @@
-/pokedexcli
+pokedex
 *.exe
 *.exe~
 *.dll
@@ -6,6 +6,7 @@
 *.dylib
 
 *.test
+*_test.go
 
 *.out
 

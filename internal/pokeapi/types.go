@@ -1,8 +1,11 @@
 package pokeapi
 
+import "github.com/englandrecoil/go-pokedex-cli/internal/pokecache"
+
 type Config struct {
 	NextURL     *string
 	PreviousURL *string
+	Cache       *pokecache.Cache
 }
 
 type LocationAreasResponse struct {

@@ -3,6 +3,7 @@ package pokeapi
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -15,7 +16,7 @@ func GetLocationAreas(cfg *Config, direction Direction) (locationAreas LocationA
 		if direction == Previous {
 			return locationAreas, fmt.Errorf("no more locations")
 		}
-		if err := makeAPICall(url, &locationAreas); err != nil {
+		if err := makeAPICall(url, &locationAreas, cfg); err != nil {
 			return locationAreas, err
 		}
 		cfg.NextURL, cfg.PreviousURL = locationAreas.Next, locationAreas.Previous
@@ -36,7 +37,15 @@ func GetLocationAreas(cfg *Config, direction Direction) (locationAreas LocationA
 		url = *cfg.PreviousURL
 	}
 
-	if err := makeAPICall(url, &locationAreas); err != nil {
+	// check if the data is already in the cache
+	if data, exists := cfg.Cache.Get(url); exists {
+		if err = json.Unmarshal(data, &locationAreas); err != nil {
+			return locationAreas, fmt.Errorf("error decoding cached data: %s", err)
+		}
+		return locationAreas, nil
+	}
+
+	if err := makeAPICall(url, &locationAreas, cfg); err != nil {
 		return locationAreas, err
 	}
 
@@ -45,7 +54,8 @@ func GetLocationAreas(cfg *Config, direction Direction) (locationAreas LocationA
 	return locationAreas, nil
 }
 
-func makeAPICall[T any](url string, target *T) error {
+func makeAPICall[T any](url string, target *T, cfg *Config) error {
+	// HTTP processing
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("can't initialize request for server: %s", err)
@@ -62,8 +72,14 @@ func makeAPICall[T any](url string, target *T) error {
 		return fmt.Errorf("non-OK HTTP status: %s", res.Status)
 	}
 
-	decoder := json.NewDecoder(res.Body)
-	if err := decoder.Decode(target); err != nil {
+	// cache processing
+	bodyData, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %s", err)
+	}
+	cfg.Cache.Add(url, bodyData)
+
+	if err = json.Unmarshal(bodyData, target); err != nil {
 		return fmt.Errorf("error decoding response body: %s", err)
 	}
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokeapi"
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokecache"
+	"github.com/fatih/color"
 )
 
 var cliName string = "pokedex "
@@ -66,9 +67,9 @@ func printPrompt() {
 }
 
 func commandHelp(cfg *pokeapi.Config, param ...string) error {
-	if param == nil {
-		fmt.Println("PARAM IS NIL")
-	}
+	color.RGB(255, 179, 26).Set()
+	defer color.Unset()
+
 	fmt.Println("Usage:")
 	fmt.Println("  help\t\t\t\tDisplays a help message")
 	fmt.Println("  exit\t\t\t\tExit the Pokedex")
@@ -79,7 +80,6 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 	fmt.Println("  cache\t\t\t\tSet the caching interval after which cleaning will occur")
 	fmt.Println("  \t\t\t\t(default value is 10 seconds)")
 	fmt.Println("")
-
 	return nil
 }
 
@@ -98,12 +98,12 @@ func commandClear(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandMap(cfg *pokeapi.Config, params ...string) error {
-	locationAreas, err := pokeapi.GetLocationAreas(cfg, pokeapi.Next)
+	locations, err := pokeapi.GetLocationAreas(cfg, pokeapi.Next)
 	if err != nil {
 		return fmt.Errorf("map command error: %s", err)
 	}
 
-	for _, value := range locationAreas.Results {
+	for _, value := range locations.Results {
 		fmt.Println(value.Name)
 	}
 
@@ -111,12 +111,12 @@ func commandMap(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandBackMap(cfg *pokeapi.Config, params ...string) error {
-	locationAreas, err := pokeapi.GetLocationAreas(cfg, pokeapi.Previous)
+	locations, err := pokeapi.GetLocationAreas(cfg, pokeapi.Previous)
 	if err != nil {
 		return fmt.Errorf("map command error: %s", err)
 	}
 
-	for _, value := range locationAreas.Results {
+	for _, value := range locations.Results {
 		fmt.Println(value.Name)
 	}
 
@@ -131,7 +131,7 @@ func commandCache(cfg *pokeapi.Config, params ...string) error {
 	var err error
 	interval, err = strconv.Atoi(reader.Text())
 	if err != nil {
-		return errors.New("cache command error: interval must be a number")
+		return errors.New(color.RedString("cache command error: interval must be a number"))
 	}
 
 	fmt.Printf("%d seconds interval was set\n", interval)
@@ -140,26 +140,42 @@ func commandCache(cfg *pokeapi.Config, params ...string) error {
 
 func commandExplore(cfg *pokeapi.Config, params ...string) error {
 	if len(params) == 1 {
-		return fmt.Errorf("explore command error: no location provided")
+		return errors.New(color.RedString("explore command error: no location provided"))
 	}
 
+	location, err := pokeapi.GetLocationArea(cfg, params[1])
+	if err != nil {
+		return fmt.Errorf(color.RedString("explore command error: %s"), err)
+	}
+
+	color.RGB(51, 204, 51).Set()
+	fmt.Printf("Exploring %s...\n", params[1])
+	fmt.Println("Found Pokemon:")
+	color.Unset()
+
+	for _, value := range location.PokemonEncounters {
+		fmt.Println(value.Pokemon.Name)
+	}
 	return nil
 }
 
 func defineCommand(input string, cfg *pokeapi.Config) error {
 	cleanedInput := strings.Fields(input)
-
 	if command, exists := commands[cleanedInput[0]]; exists {
 		if err := command.callback(cfg, cleanedInput...); err != nil {
 			return err
 		}
 		return nil
 	}
+
 	err := fmt.Errorf("%s: %w", input, errUndefinedCommand)
 	return err
 }
 
 func printWelcomeMessage() {
+	color.RGB(51, 204, 51).Set()
+	defer color.Unset()
+
 	fmt.Printf("Welcome to the Pokedex!\n\n")
 	fmt.Println("Please note that the Pokedex CLI is using a cache to quickly")
 	fmt.Println("access data and reduce the load on the PokeAPI servers")
@@ -172,6 +188,7 @@ func main() {
 	cfg := &pokeapi.Config{}
 	cfg.Cache = pokecache.NewCache(time.Duration(interval))
 	reader := bufio.NewScanner(os.Stdin)
+	red := color.New(color.FgRed).PrintlnFunc()
 
 	printWelcomeMessage()
 	printPrompt()
@@ -179,10 +196,10 @@ func main() {
 	for reader.Scan() {
 		if err := defineCommand(reader.Text(), cfg); err != nil {
 			if errors.Is(err, errUndefinedCommand) {
-				fmt.Println(err)
+				red(err)
 				fmt.Println("Use 'help' to view the available commands")
 			} else {
-				fmt.Println(err)
+				red(err)
 			}
 		}
 

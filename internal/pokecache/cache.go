@@ -37,13 +37,13 @@ func (c *Cache) Get(key string) (cacheData []byte, exists bool) {
 	return value.val, true
 }
 
-func NewCache(interval time.Duration) *Cache {
+func NewCache(interval time.Duration) Cache {
 	c := Cache{
 		mu:   &sync.Mutex{},
 		data: make(map[string]cacheEntry),
 	}
 	go c.reapLoop(interval)
-	return &c
+	return c
 }
 
 func (c *Cache) reapLoop(interval time.Duration) {

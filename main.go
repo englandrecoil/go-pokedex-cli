@@ -18,6 +18,13 @@ import (
 var cliName string = "pokedex "
 var errUndefinedCommand error = errors.New("command not found")
 var interval int = 1
+
+type command struct {
+	name        string
+	description string
+	callback    func(*pokeapi.Config, ...string) error
+}
+
 var commands = map[string]command{
 	"help": {
 		name:        "help",
@@ -54,16 +61,27 @@ var commands = map[string]command{
 		description: "Set the caching interval after which cleaning will occur",
 		callback:    commandCache,
 	},
-}
-
-type command struct {
-	name        string
-	description string
-	callback    func(*pokeapi.Config, ...string) error
+	"catch": {
+		name:        "catch",
+		description: "Catch Pokemon with a certain chance",
+		callback:    commandCatch,
+	},
 }
 
 func printPrompt() {
 	fmt.Print(cliName, "> ")
+}
+
+func printWelcomeMessage() {
+	color.RGB(51, 204, 51).Set()
+	defer color.Unset()
+
+	fmt.Printf("Welcome to the Pokedex!\n\n")
+	fmt.Println("Please note that the Pokedex CLI is using a cache to quickly")
+	fmt.Println("access data and reduce the load on the PokeAPI servers")
+	fmt.Printf("\n")
+	fmt.Println("Use 'help' command to find out about Pokémon world exploration commands.")
+	fmt.Println()
 }
 
 func commandHelp(cfg *pokeapi.Config, param ...string) error {
@@ -77,6 +95,7 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 	fmt.Println("  map\t\t\t\tDisplays the names of the next 20 location areas")
 	fmt.Println("  mapb\t\t\t\tDisplays the names of the previous 20 location areas")
 	fmt.Println("  explore {location_area}\tDisplays all the Pokémon in a given area")
+	fmt.Println("  catch {pokemon_name}\t\tCatch Pokemon with a certain chance")
 	fmt.Println("  cache\t\t\t\tSet the caching interval(in hours) after which cleaning will occur")
 	fmt.Println("  \t\t\t\t(default value is 1 hour)")
 	fmt.Println("")
@@ -159,6 +178,10 @@ func commandExplore(cfg *pokeapi.Config, params ...string) error {
 	return nil
 }
 
+func commandCatch(cfg *pokeapi.Config, params ...string) error {
+	return nil
+}
+
 func defineCommand(input string, cfg *pokeapi.Config) error {
 	cleanedInput := strings.Fields(input)
 	if command, exists := commands[cleanedInput[0]]; exists {
@@ -172,23 +195,12 @@ func defineCommand(input string, cfg *pokeapi.Config) error {
 	return err
 }
 
-func printWelcomeMessage() {
-	color.RGB(51, 204, 51).Set()
-	defer color.Unset()
-
-	fmt.Printf("Welcome to the Pokedex!\n\n")
-	fmt.Println("Please note that the Pokedex CLI is using a cache to quickly")
-	fmt.Println("access data and reduce the load on the PokeAPI servers")
-	fmt.Printf("\n")
-	fmt.Println("Use 'help' command to find out about Pokémon world exploration commands.")
-	fmt.Println()
-}
-
 func main() {
 	cfg := &pokeapi.Config{
-		NextURL:     nil,
-		PreviousURL: nil,
-		Cache:       pokecache.NewCache(time.Duration(interval) * time.Hour),
+		NextURL:       nil,
+		PreviousURL:   nil,
+		Cache:         pokecache.NewCache(time.Duration(interval) * time.Hour),
+		PokemonCaught: nil,
 	}
 	reader := bufio.NewScanner(os.Stdin)
 	red := color.New(color.FgRed).PrintlnFunc()

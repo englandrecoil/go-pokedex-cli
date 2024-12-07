@@ -75,6 +75,8 @@ func GetLocationAreas(cfg *Config, direction Direction) (locations LocationAreas
 	return locations, nil
 }
 
+// func GetPokemon
+
 func makeAPICall[T any](url string, target *T, cfg *Config) error {
 	// HTTP processing
 	req, err := http.NewRequest("GET", url, nil)

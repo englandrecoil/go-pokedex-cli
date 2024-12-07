@@ -19,11 +19,10 @@ func (c *Cache) Add(key string, value []byte) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	newEntry := cacheEntry{
-		createdAt: time.Now(),
+	c.data[key] = cacheEntry{
+		createdAt: time.Now().UTC(),
 		val:       value,
 	}
-	c.data[key] = newEntry
 
 }
 
@@ -39,12 +38,12 @@ func (c *Cache) Get(key string) (cacheData []byte, exists bool) {
 }
 
 func NewCache(interval time.Duration) *Cache {
-	c := &Cache{
+	c := Cache{
 		mu:   &sync.Mutex{},
 		data: make(map[string]cacheEntry),
 	}
 	go c.reapLoop(interval)
-	return c
+	return &c
 }
 
 func (c *Cache) reapLoop(interval time.Duration) {

@@ -17,7 +17,7 @@ import (
 
 var cliName string = "pokedex "
 var errUndefinedCommand error = errors.New("command not found")
-var interval int = 10
+var interval int = 1
 var commands = map[string]command{
 	"help": {
 		name:        "help",
@@ -39,8 +39,8 @@ var commands = map[string]command{
 		description: "Displays the names of the next 20 location areas",
 		callback:    commandMap,
 	},
-	"bmap": {
-		name:        "bmap",
+	"mapb": {
+		name:        "mapb",
 		description: "Displays the names of the previous 20 location areas",
 		callback:    commandBackMap,
 	},
@@ -75,10 +75,10 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 	fmt.Println("  exit\t\t\t\tExit the Pokedex")
 	fmt.Println("  clear\t\t\t\tClear the terminal screen")
 	fmt.Println("  map\t\t\t\tDisplays the names of the next 20 location areas")
-	fmt.Println("  bmap\t\t\t\tDisplays the names of the previous 20 location areas")
+	fmt.Println("  mapb\t\t\t\tDisplays the names of the previous 20 location areas")
 	fmt.Println("  explore {location_area}\tDisplays all the Pokémon in a given area")
-	fmt.Println("  cache\t\t\t\tSet the caching interval after which cleaning will occur")
-	fmt.Println("  \t\t\t\t(default value is 10 seconds)")
+	fmt.Println("  cache\t\t\t\tSet the caching interval(in hours) after which cleaning will occur")
+	fmt.Println("  \t\t\t\t(default value is 1 hour)")
 	fmt.Println("")
 	return nil
 }
@@ -104,7 +104,7 @@ func commandMap(cfg *pokeapi.Config, params ...string) error {
 	}
 
 	for _, value := range locations.Results {
-		fmt.Println(value.Name)
+		fmt.Println(" - " + value.Name)
 	}
 
 	return nil
@@ -117,7 +117,7 @@ func commandBackMap(cfg *pokeapi.Config, params ...string) error {
 	}
 
 	for _, value := range locations.Results {
-		fmt.Println(value.Name)
+		fmt.Println(" - " + value.Name)
 	}
 
 	return nil
@@ -134,7 +134,7 @@ func commandCache(cfg *pokeapi.Config, params ...string) error {
 		return errors.New(color.RedString("cache command error: interval must be a number"))
 	}
 
-	fmt.Printf("%d seconds interval was set\n", interval)
+	fmt.Printf("%d hour interval was set\n", interval)
 	return nil
 }
 
@@ -154,7 +154,7 @@ func commandExplore(cfg *pokeapi.Config, params ...string) error {
 	color.Unset()
 
 	for _, value := range location.PokemonEncounters {
-		fmt.Println(value.Pokemon.Name)
+		fmt.Printf(" - " + value.Pokemon.Name + "\n")
 	}
 	return nil
 }
@@ -185,8 +185,11 @@ func printWelcomeMessage() {
 }
 
 func main() {
-	cfg := &pokeapi.Config{}
-	cfg.Cache = pokecache.NewCache(time.Duration(interval))
+	cfg := &pokeapi.Config{
+		NextURL:     nil,
+		PreviousURL: nil,
+		Cache:       pokecache.NewCache(time.Duration(interval) * time.Hour),
+	}
 	reader := bufio.NewScanner(os.Stdin)
 	red := color.New(color.FgRed).PrintlnFunc()
 

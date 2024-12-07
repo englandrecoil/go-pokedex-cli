@@ -13,12 +13,13 @@ func GetLocationArea(cfg *Config, location string) (locationArea LocationArea, e
 
 	// check if the data is already in the cache
 	if data, exists := cfg.Cache.Get(url); exists {
+		fmt.Println("cache hit")
 		if err = json.Unmarshal(data, &locationArea); err != nil {
 			return locationArea, fmt.Errorf("error decoding cached data: %s", err)
 		}
 		return locationArea, nil
 	}
-
+	fmt.Println("cache miss")
 	if err := makeAPICall(url, &locationArea, cfg); err != nil {
 		return locationArea, err
 	}
@@ -27,7 +28,7 @@ func GetLocationArea(cfg *Config, location string) (locationArea LocationArea, e
 }
 
 func GetLocationAreas(cfg *Config, direction Direction) (locations LocationAreasResponse, err error) {
-	url := "https://pokeapi.co/api/v2/location-area/"
+	url := "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20"
 	locations = LocationAreasResponse{}
 
 	// pagination(direction) rules for the very first ever request
@@ -58,12 +59,13 @@ func GetLocationAreas(cfg *Config, direction Direction) (locations LocationAreas
 
 	// check if the data is already in the cache
 	if data, exists := cfg.Cache.Get(url); exists {
+		fmt.Println("cache hit")
 		if err = json.Unmarshal(data, &locations); err != nil {
 			return locations, fmt.Errorf("error decoding cached data: %s", err)
 		}
+		cfg.NextURL, cfg.PreviousURL = locations.Next, locations.Previous
 		return locations, nil
 	}
-
 	if err := makeAPICall(url, &locations, cfg); err != nil {
 		return locations, err
 	}
@@ -96,6 +98,7 @@ func makeAPICall[T any](url string, target *T, cfg *Config) error {
 	if err != nil {
 		return fmt.Errorf("error reading response body: %s", err)
 	}
+	fmt.Println("cache miss")
 	cfg.Cache.Add(url, bodyData)
 
 	if err = json.Unmarshal(bodyData, target); err != nil {

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"os/exec"
 	"strconv"
@@ -96,7 +97,7 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 	fmt.Println("  mapb\t\t\t\tDisplays the names of the previous 20 location areas")
 	fmt.Println("  explore {location_area}\tDisplays all the Pokémon in a given area")
 	fmt.Println("  catch {pokemon_name}\t\tCatch Pokemon with a certain chance")
-	fmt.Println("  cache\t\t\t\tSet the caching interval(in hours) after which cleaning will occur")
+	fmt.Println("  cache {integer_number}\tSet the caching interval(in hours) after which cleaning will occur")
 	fmt.Println("  \t\t\t\t(default value is 1 hour)")
 	fmt.Println("")
 	return nil
@@ -143,14 +144,18 @@ func commandBackMap(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandCache(cfg *pokeapi.Config, params ...string) error {
-	fmt.Println("Enter the caching interval")
-	reader := bufio.NewScanner(os.Stdin)
-	reader.Scan()
+	if len(params) == 1 {
+		return errors.New("cache command error: no value provided")
+	}
+	inputInterval := params[1]
 
 	var err error
-	interval, err = strconv.Atoi(reader.Text())
+	interval, err = strconv.Atoi(inputInterval)
 	if err != nil {
-		return errors.New(color.RedString("cache command error: interval must be a number"))
+		return errors.New("cache command error: interval must be an integer number")
+	}
+	if interval <= 0 {
+		return errors.New("cache command error: the number must be greater than 0")
 	}
 
 	fmt.Printf("%d hour interval was set\n", interval)
@@ -159,15 +164,15 @@ func commandCache(cfg *pokeapi.Config, params ...string) error {
 
 func commandExplore(cfg *pokeapi.Config, params ...string) error {
 	if len(params) == 1 {
-		return errors.New(color.RedString("explore command error: no location provided"))
+		return errors.New("explore command error: no location provided")
 	}
 
 	location, err := pokeapi.GetLocationArea(cfg, params[1])
 	if err != nil {
-		return fmt.Errorf(color.RedString("explore command error: %s"), err)
+		return fmt.Errorf("explore command error: %s", err)
 	}
 
-	color.RGB(51, 204, 51).Set()
+	color.RGB(102, 153, 255).Set()
 	fmt.Printf("Exploring %s...\n", params[1])
 	fmt.Println("Found Pokemon:")
 	color.Unset()
@@ -179,6 +184,34 @@ func commandExplore(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandCatch(cfg *pokeapi.Config, params ...string) error {
+	color.RGB(102, 153, 255).Set()
+	defer color.Unset()
+
+	if len(params) == 1 {
+		return errors.New("catch command error: no Pokemon name provided")
+	}
+
+	if _, exists := cfg.PokemonCaught[params[1]]; exists {
+		fmt.Printf("You already caught %s!\n", params[1])
+		return nil
+	}
+
+	pokemon, err := pokeapi.GetPokemon(cfg, params[1])
+	if err != nil {
+		return fmt.Errorf("catch command error: %s", err)
+	}
+
+	const treshold = 50
+	chance := rand.IntN(pokemon.BaseExperience) + treshold
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
+	if pokemon.BaseExperience > chance {
+		fmt.Printf("%s escaped!\n", pokemon.Name)
+		delete(cfg.PokemonCaught, pokemon.Name)
+		return nil
+	}
+	fmt.Printf("%s was caught!\n", pokemon.Name)
+
 	return nil
 }
 
@@ -200,8 +233,9 @@ func main() {
 		NextURL:       nil,
 		PreviousURL:   nil,
 		Cache:         pokecache.NewCache(time.Duration(interval) * time.Hour),
-		PokemonCaught: nil,
+		PokemonCaught: make(map[string]pokeapi.Pokemon),
 	}
+
 	reader := bufio.NewScanner(os.Stdin)
 	red := color.New(color.FgRed).PrintlnFunc()
 

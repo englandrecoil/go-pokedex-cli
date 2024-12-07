@@ -13,7 +13,6 @@ func GetLocationArea(cfg *Config, location string) (locationArea LocationArea, e
 
 	// check if the data is already in the cache
 	if data, exists := cfg.Cache.Get(url); exists {
-		fmt.Println("cache hit")
 		if err = json.Unmarshal(data, &locationArea); err != nil {
 			return locationArea, fmt.Errorf("error decoding cached data: %s", err)
 		}
@@ -59,7 +58,6 @@ func GetLocationAreas(cfg *Config, direction Direction) (locations LocationAreas
 
 	// check if the data is already in the cache
 	if data, exists := cfg.Cache.Get(url); exists {
-		fmt.Println("cache hit")
 		if err = json.Unmarshal(data, &locations); err != nil {
 			return locations, fmt.Errorf("error decoding cached data: %s", err)
 		}
@@ -75,7 +73,27 @@ func GetLocationAreas(cfg *Config, direction Direction) (locations LocationAreas
 	return locations, nil
 }
 
-// func GetPokemon
+func GetPokemon(cfg *Config, pokemonName string) (pokemon Pokemon, err error) {
+	url := "https://pokeapi.co/api/v2/pokemon/" + pokemonName
+	pokemon = Pokemon{}
+
+	if data, exists := cfg.Cache.Get(url); exists {
+		if err = json.Unmarshal(data, &pokemon); err != nil {
+			return pokemon, fmt.Errorf("error decoding cached data: %s", err)
+		}
+		cfg.PokemonCaught[pokemonName] = pokemon
+		return pokemon, nil
+	}
+
+	if err = makeAPICall(url, &pokemon, cfg); err != nil {
+		return pokemon, err
+	}
+
+	cfg.PokemonCaught[pokemonName] = pokemon
+
+	return pokemon, nil
+
+}
 
 func makeAPICall[T any](url string, target *T, cfg *Config) error {
 	// HTTP processing
@@ -95,12 +113,11 @@ func makeAPICall[T any](url string, target *T, cfg *Config) error {
 		return fmt.Errorf("non-OK HTTP status: %s", res.Status)
 	}
 
-	// cache processing
 	bodyData, err := io.ReadAll(res.Body)
 	if err != nil {
 		return fmt.Errorf("error reading response body: %s", err)
 	}
-	fmt.Println("cache miss")
+
 	cfg.Cache.Add(url, bodyData)
 
 	if err = json.Unmarshal(bodyData, target); err != nil {

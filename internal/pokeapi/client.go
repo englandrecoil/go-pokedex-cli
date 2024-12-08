@@ -18,7 +18,6 @@ func GetLocationArea(cfg *Config, location string) (locationArea LocationArea, e
 		}
 		return locationArea, nil
 	}
-	fmt.Println("cache miss")
 	if err := makeAPICall(url, &locationArea, cfg); err != nil {
 		return locationArea, err
 	}

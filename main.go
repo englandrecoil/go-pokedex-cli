@@ -67,6 +67,11 @@ var commands = map[string]command{
 		description: "Catch Pokemon with a certain chance",
 		callback:    commandCatch,
 	},
+	"inspect": {
+		name:        "inspect {pokemon_name}",
+		description: "Inspect the caught pokemon",
+		callback:    commandInspect,
+	},
 }
 
 func printPrompt() {
@@ -91,15 +96,24 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 
 	fmt.Println("Usage:")
 	fmt.Println("  help\t\t\t\tDisplays a help message")
+	fmt.Println()
 	fmt.Println("  exit\t\t\t\tExit the Pokedex")
+	fmt.Println()
 	fmt.Println("  clear\t\t\t\tClear the terminal screen")
+	fmt.Println()
 	fmt.Println("  map\t\t\t\tDisplays the names of the next 20 location areas")
+	fmt.Println()
 	fmt.Println("  mapb\t\t\t\tDisplays the names of the previous 20 location areas")
+	fmt.Println()
 	fmt.Println("  explore {location_area}\tDisplays all the Pokémon in a given area")
+	fmt.Println()
+	fmt.Println("  inspect {pokemon_name}\tInspect the caught pokemon\t")
+	fmt.Println()
 	fmt.Println("  catch {pokemon_name}\t\tCatch Pokemon with a certain chance")
+	fmt.Println()
 	fmt.Println("  cache {integer_number}\tSet the caching interval(in hours) after which cleaning will occur")
 	fmt.Println("  \t\t\t\t(default value is 1 hour)")
-	fmt.Println("")
+	fmt.Println()
 	return nil
 }
 
@@ -212,6 +226,39 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 	}
 	fmt.Printf("%s was caught!\n", pokemon.Name)
 
+	return nil
+}
+
+func commandInspect(cfg *pokeapi.Config, params ...string) error {
+	color.RGB(102, 153, 255).Set()
+	defer color.Unset()
+
+	if len(params) == 1 {
+		return errors.New("inspect command error: no Pokemon name provided")
+	}
+
+	if _, exists := cfg.PokemonCaught[params[1]]; !exists {
+		fmt.Println("You have not caught that pokemon!")
+		return nil
+	}
+
+	pokemon, err := pokeapi.GetPokemon(cfg, params[1])
+	if err != nil {
+		return fmt.Errorf("inspect command error: %s", err)
+	}
+
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+	fmt.Println("Stats:")
+
+	for _, value := range pokemon.Stats {
+		fmt.Printf(" - "+"%s: "+"%d\n", value.Stat.Name, value.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, value := range pokemon.Types {
+		fmt.Printf(" - "+"%s\n", value.Type.Name)
+	}
 	return nil
 }
 

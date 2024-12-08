@@ -6,7 +6,6 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
-	"path"
 	"strconv"
 
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokeapi"
@@ -71,38 +70,47 @@ var commands = map[string]command{
 		description: "Displays all caught Pokemon",
 		callback:    commandPokedex,
 	},
+	"color": {
+		name:        "color",
+		description: "Configures the display of color output",
+		callback:    commandColor,
+	},
 }
 
 func commandHelp(cfg *pokeapi.Config, param ...string) error {
-	color.RGB(255, 179, 26).Set()
+	color.Set(color.FgYellow)
 	defer color.Unset()
 
 	fmt.Println("Usage:")
-	fmt.Println("  help\t\t\t\tDisplays a help message")
-	fmt.Println("  exit\t\t\t\tExit the Pokedex")
-	fmt.Println("  clear\t\t\t\tClear the terminal screen")
 	fmt.Println("  pokedex\t\t\tDisplays all caught Pokemon")
+	fmt.Println()
 	fmt.Println("  map\t\t\t\tDisplays the names of the next 20 location areas")
+	fmt.Println()
 	fmt.Println("  mapb\t\t\t\tDisplays the names of the previous 20 location areas")
+	fmt.Println()
 	fmt.Println("  explore {location_area}\tDisplays all the Pokémon in a given area")
+	fmt.Println()
 	fmt.Println("  inspect {pokemon_name}\tInspect the caught pokemon\t")
+	fmt.Println()
 	fmt.Println("  catch {pokemon_name}\t\tCatch Pokemon with a certain chance")
-	fmt.Println("  cache {integer_number}\tSet the caching interval(in hours) after which cleaning will occur")
-	fmt.Println("  \t\t\t\t(default value is 1 hour)")
+	fmt.Println()
+	fmt.Println("  help\t\t\t\tDisplays a help message")
+	fmt.Println()
+	fmt.Println("  exit\t\t\t\tExit the Pokedex")
+	fmt.Println()
+	fmt.Println("  clear\t\t\t\tClear the terminal screen")
+	fmt.Println()
+	fmt.Println("  cache {integer_number}\tSet the caching interval(in hours) after which")
+	fmt.Println("  \t\t\t\tcleaning will occur (default value is 1 hour)")
+	fmt.Println()
+	fmt.Println("  color {on/of}\t\t\tConfigures the display of color output. Only works")
+	fmt.Println("  \t\t\t\tif the environment variable 'NO_COLOR' is empty")
+	fmt.Println("  \t\t\t\t(default option is set to the NO_COLORS value)")
 	fmt.Println()
 	return nil
 }
 
 func commandExit(cfg *pokeapi.Config, params ...string) error {
-	dir, err := os.ReadDir("./images")
-	if err != nil {
-		return fmt.Errorf("command exit error: can't clean image folder: %s", err)
-	}
-
-	for _, value := range dir {
-		os.RemoveAll(path.Join([]string{"./images", value.Name()}...))
-	}
-
 	defer os.Exit(0)
 	return nil
 }
@@ -114,6 +122,23 @@ func commandClear(cfg *pokeapi.Config, params ...string) error {
 		return fmt.Errorf("clear command error: %w", err)
 	}
 	return nil
+}
+
+func commandColor(cfg *pokeapi.Config, params ...string) error {
+	if len(params) == 1 {
+		return fmt.Errorf("color command error: no argument provided")
+	}
+
+	switch params[1] {
+	case "off":
+		color.NoColor = true
+		return nil
+	case "on":
+		color.NoColor = false
+		return nil
+	default:
+		return fmt.Errorf("color command error: unknown argument")
+	}
 }
 
 func commandMap(cfg *pokeapi.Config, params ...string) error {
@@ -171,7 +196,9 @@ func commandExplore(cfg *pokeapi.Config, params ...string) error {
 		return fmt.Errorf("explore command error: %s", err)
 	}
 
-	color.RGB(102, 153, 255).Set()
+	color.Set(color.FgBlue)
+	defer color.Unset()
+
 	fmt.Printf("Exploring %s...\n", params[1])
 	fmt.Println("Found Pokemon:")
 	color.Unset()
@@ -183,7 +210,7 @@ func commandExplore(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandCatch(cfg *pokeapi.Config, params ...string) error {
-	color.RGB(102, 153, 255).Set()
+	color.Set(color.FgBlue)
 	defer color.Unset()
 
 	if len(params) == 1 {
@@ -216,8 +243,7 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandInspect(cfg *pokeapi.Config, params ...string) error {
-	color.RGB(102, 153, 255).Set()
-	defer color.Unset()
+	color.Set(color.FgBlue)
 
 	if len(params) == 1 {
 		return errors.New("inspect command error: no Pokemon name provided")
@@ -246,13 +272,15 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 		fmt.Printf(" - "+"%s\n", value.Type.Name)
 	}
 
-	// display image
 	image, err := pokeapi.GetImage(cfg, pokemon.Sprites.Other.OfficialArtwork.FrontDefault)
 	if err != nil {
 		return err
 	}
 
-	if err = pokedraw.DisplayImage(pokemon.Name, image); err != nil {
+	fmt.Println("Image:")
+	color.Unset()
+
+	if err = pokedraw.DisplayImage(image); err != nil {
 		return fmt.Errorf("display image error: %s", err)
 	}
 
@@ -260,7 +288,7 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandPokedex(cfg *pokeapi.Config, params ...string) error {
-	color.RGB(102, 153, 255).Set()
+	color.Set(color.FgBlue)
 	defer color.Unset()
 
 	if len(cfg.PokemonCaught) == 0 {

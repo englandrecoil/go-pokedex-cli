@@ -22,7 +22,7 @@ func printPrompt() {
 }
 
 func printWelcomeMessage() {
-	color.RGB(51, 204, 51).Set()
+	color.Set(color.FgGreen)
 	defer color.Unset()
 
 	fmt.Printf("Welcome to the Pokedex!\n\n")
@@ -45,6 +45,14 @@ func defineCommand(input string, cfg *pokeapi.Config) error {
 
 	err := fmt.Errorf("%s: %w", input, errUndefinedCommand)
 	return err
+}
+
+func init() {
+	if noColorVariable := os.Getenv("NO_COLOR"); noColorVariable == "" {
+		color.NoColor = false
+	} else {
+		color.NoColor = true
+	}
 }
 
 func main() {

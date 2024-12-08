@@ -11,13 +11,13 @@ func GetLocationArea(cfg *Config, location string) (locationArea LocationArea, e
 	url := "https://pokeapi.co/api/v2/location-area/" + location
 	locationArea = LocationArea{}
 
-	// check if the data is already in the cache
 	if data, exists := cfg.Cache.Get(url); exists {
 		if err = json.Unmarshal(data, &locationArea); err != nil {
 			return locationArea, fmt.Errorf("error decoding cached data: %s", err)
 		}
 		return locationArea, nil
 	}
+
 	if err := makeAPICall(url, &locationArea, cfg); err != nil {
 		return locationArea, err
 	}
@@ -55,7 +55,6 @@ func GetLocationAreas(cfg *Config, direction Direction) (locations LocationAreas
 		url = *cfg.PreviousURL
 	}
 
-	// check if the data is already in the cache
 	if data, exists := cfg.Cache.Get(url); exists {
 		if err = json.Unmarshal(data, &locations); err != nil {
 			return locations, fmt.Errorf("error decoding cached data: %s", err)
@@ -63,6 +62,7 @@ func GetLocationAreas(cfg *Config, direction Direction) (locations LocationAreas
 		cfg.NextURL, cfg.PreviousURL = locations.Next, locations.Previous
 		return locations, nil
 	}
+
 	if err := makeAPICall(url, &locations, cfg); err != nil {
 		return locations, err
 	}
@@ -127,7 +127,6 @@ func GetImage(cfg *Config, url string) (image []byte, err error) {
 }
 
 func makeAPICall[T any](url string, target *T, cfg *Config) error {
-	// HTTP processing
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("can't initialize request for server: %s", err)

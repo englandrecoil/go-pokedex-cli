@@ -298,7 +298,7 @@ func commandPokedex(cfg *pokeapi.Config, params ...string) error {
 
 	fmt.Println("Your pokedex:")
 	for _, value := range cfg.PokemonCaught {
-		fmt.Println(" - " + value.Name + "ID:" + strconv.Itoa(value.ID))
+		fmt.Println(" - " + value.Name)
 	}
 
 	return nil

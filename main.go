@@ -42,8 +42,8 @@ func defineCommand(input string, cfg *pokeapi.Config) error {
 		}
 		return nil
 	}
-
 	err := fmt.Errorf("%s: %w", input, errUndefinedCommand)
+
 	return err
 }
 

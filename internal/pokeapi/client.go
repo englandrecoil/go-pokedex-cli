@@ -94,6 +94,38 @@ func GetPokemon(cfg *Config, pokemonName string) (pokemon Pokemon, err error) {
 
 }
 
+func GetImage(cfg *Config, url string) (image []byte, err error) {
+	if data, exists := cfg.Cache.Get(url); exists {
+		return data, nil
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("can't initialize request for server: %s", err)
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("can't send request to server: %s", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
+	}
+
+	bodyData, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %s", err)
+	}
+
+	cfg.Cache.Add(url, bodyData)
+
+	return bodyData, nil
+
+}
+
 func makeAPICall[T any](url string, target *T, cfg *Config) error {
 	// HTTP processing
 	req, err := http.NewRequest("GET", url, nil)

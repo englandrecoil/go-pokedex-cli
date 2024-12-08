@@ -6,9 +6,11 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokeapi"
+	"github.com/englandrecoil/go-pokedex-cli/internal/pokedraw"
 	"github.com/fatih/color"
 )
 
@@ -64,6 +66,11 @@ var commands = map[string]command{
 		description: "Inspect the caught pokemon",
 		callback:    commandInspect,
 	},
+	"pokedex": {
+		name:        "pokedex",
+		description: "Displays all caught Pokemon",
+		callback:    commandPokedex,
+	},
 }
 
 func commandHelp(cfg *pokeapi.Config, param ...string) error {
@@ -74,6 +81,7 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 	fmt.Println("  help\t\t\t\tDisplays a help message")
 	fmt.Println("  exit\t\t\t\tExit the Pokedex")
 	fmt.Println("  clear\t\t\t\tClear the terminal screen")
+	fmt.Println("  pokedex\t\t\tDisplays all caught Pokemon")
 	fmt.Println("  map\t\t\t\tDisplays the names of the next 20 location areas")
 	fmt.Println("  mapb\t\t\t\tDisplays the names of the previous 20 location areas")
 	fmt.Println("  explore {location_area}\tDisplays all the Pokémon in a given area")
@@ -86,6 +94,15 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 }
 
 func commandExit(cfg *pokeapi.Config, params ...string) error {
+	dir, err := os.ReadDir("./images")
+	if err != nil {
+		return fmt.Errorf("command exit error: can't clean image folder: %s", err)
+	}
+
+	for _, value := range dir {
+		os.RemoveAll(path.Join([]string{"./images", value.Name()}...))
+	}
+
 	defer os.Exit(0)
 	return nil
 }
@@ -193,6 +210,7 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 		return nil
 	}
 	fmt.Printf("%s was caught!\n", pokemon.Name)
+	fmt.Println("You may now inspect it with the 'inspect' command.")
 
 	return nil
 }
@@ -227,5 +245,33 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 	for _, value := range pokemon.Types {
 		fmt.Printf(" - "+"%s\n", value.Type.Name)
 	}
+
+	// display image
+	image, err := pokeapi.GetImage(cfg, pokemon.Sprites.Other.OfficialArtwork.FrontDefault)
+	if err != nil {
+		return err
+	}
+
+	if err = pokedraw.DisplayImage(pokemon.Name, image); err != nil {
+		return fmt.Errorf("display image error: %s", err)
+	}
+
+	return nil
+}
+
+func commandPokedex(cfg *pokeapi.Config, params ...string) error {
+	color.RGB(102, 153, 255).Set()
+	defer color.Unset()
+
+	if len(cfg.PokemonCaught) == 0 {
+		fmt.Println("Your pokedex is empty! Try to catch Pokemon with 'catch' command")
+		return nil
+	}
+
+	fmt.Println("Your pokedex:")
+	for _, value := range cfg.PokemonCaught {
+		fmt.Println(" - " + value.Name + "ID:" + strconv.Itoa(value.ID))
+	}
+
 	return nil
 }

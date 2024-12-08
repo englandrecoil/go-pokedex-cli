@@ -34,7 +34,8 @@ func printWelcomeMessage() {
 }
 
 func defineCommand(input string, cfg *pokeapi.Config) error {
-	cleanedInput := strings.Fields(input)
+	cleanedInput := strings.Fields(strings.ToLower(input))
+
 	if command, exists := commands[cleanedInput[0]]; exists {
 		if err := command.callback(cfg, cleanedInput...); err != nil {
 			return err

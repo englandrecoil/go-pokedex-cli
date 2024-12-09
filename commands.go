@@ -283,6 +283,7 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 	if err = pokedraw.DisplayImage(image); err != nil {
 		return fmt.Errorf("display image error: %s", err)
 	}
+	fmt.Println()
 
 	return nil
 }

@@ -7,7 +7,7 @@
 ## :minidisc: Installation
 To use, follow these steps:
 1. Paste `git clone https://github.com/englandrecoil/go-pokedex-cli.git` in your terminal
-2. Compile it yourself with `go build`(you need [go](https://go.dev)) or just use the compiled one with `./go-pokedex-cli` in your terminal.
+2. Compile it yourself with `go build`(you need [go](https://go.dev)) or just use the compiled one with `go-pokedex-cli` in your terminal.
 
 ## :keyboard: Usage
 Try writing the 'help' command to find out what commands are available. 
@@ -22,7 +22,7 @@ The list of available commands can also be found additionally below:
 | `catch {pokemon_name}` | Catch Pokemon with a certain chance |
 | `help` | Displays a help message |
 | `exit` | Exit the Pokedex |
-| `clear` | Clear the terminal screen |
+| `clear` | Clear the terminal screen(doesn't work for Windows) |
 | `cache {integer_number}` | Set the caching interval(in hours) after which cleaning will occur |
 | `color {on/off}` | Configures the display of color output* |
 
@@ -32,3 +32,4 @@ The list of available commands can also be found additionally below:
 - [ ] Simulate battles between captured Pokémon
 - [ ] Save progress between sessions by saving the user's Pokédex to disk
 - [ ] Improve ASCII art generation
+- [ ] Add 'clear' command support for Windows

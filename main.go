@@ -26,9 +26,11 @@ func printWelcomeMessage() {
 	defer color.Unset()
 
 	fmt.Printf("Welcome to the Pokedex!\n\n")
-	fmt.Println("Please note that the Pokedex CLI is using a cache to quickly")
-	fmt.Println("access data and reduce the load on the PokeAPI servers")
-	fmt.Printf("\n")
+	fmt.Println("The Pokedex CLI uses caching to improve speed and reduce load on PokeAPI servers.")
+	fmt.Println()
+	fmt.Println("Color support is based on your environment settings.")
+	fmt.Println("If you have set 'NO_COLOR=1', colors will be disabled.")
+	fmt.Println()
 	fmt.Println("Use 'help' command to find out about Pokémon world exploration commands.")
 	fmt.Println()
 }

@@ -32,4 +32,4 @@ The list of available commands can also be found additionally below:
 - [ ] Simulate battles between captured Pokémon
 - [ ] Save progress between sessions by saving the user's Pokédex to disk
 - [ ] Improve ASCII art generation
-- [ ] Add 'clear' command support for Windows
+- [X] Add 'clear' command support for Windows

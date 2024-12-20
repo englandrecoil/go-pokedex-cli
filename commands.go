@@ -6,6 +6,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokeapi"
@@ -116,11 +117,20 @@ func commandExit(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandClear(cfg *pokeapi.Config, params ...string) error {
-	cmd := exec.Command("clear")
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "cls")
+	case "darwin", "linux":
+		cmd = exec.Command("clear")
+	}
+
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("clear command error: %w", err)
 	}
+
 	return nil
 }
 

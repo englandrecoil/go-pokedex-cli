@@ -1,6 +1,4 @@
 pokedex
-*.exe
-*.exe~
 *.dll
 *.so
 *.dylib

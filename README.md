@@ -14,22 +14,23 @@ Try writing the 'help' command to find out what commands are available.
 The list of available commands can also be found additionally below:
 | Command  | Description |
 | ------------- | ------------- |
-| `pokedex`  | Displays all caught Pokemon |
+| `pokedex`  | Displays all caught Pokémon |
 | `map`  | Displays the names of the next 20 location areas |
 | `mapb` | Displays the names of the next 20 location areas |
 | `explore {location_area}` | Displays all the Pokémon in a given area |
 | `inspect {pokemon_name}` | Inspect the caught pokemon |
 | `catch {pokemon_name}` | Catch Pokemon with a certain chance |
+| `battle {pokemon_name1} {pokemon_name2}` | Simulate battles between two captured Pokémon |
 | `help` | Displays a help message |
 | `exit` | Exit the Pokedex |
-| `clear` | Clear the terminal screen(doesn't work for Windows) |
+| `clear` | Clear the terminal screen |
 | `cache {integer_number}` | Set the caching interval(in hours) after which cleaning will occur |
 | `color {on/off}` | Configures the display of color output* |
 
 \* To comply with the [standard](https://no-color.org) and not confuse users, it only works if the environment variable 'NO_COLOR' is empty. By default, it is set to the value NO_COLORS. If you haven't touched this variable, you're all set.
 
 ## :spiral_notepad: Future improvements and enhancements
-- [ ] Simulate battles between captured Pokémon
+- [X] Simulate battles between captured Pokémon
 - [ ] Save progress between sessions by saving the user's Pokédex to disk
 - [ ] Improve ASCII art generation
 - [X] Add 'clear' command support for Windows

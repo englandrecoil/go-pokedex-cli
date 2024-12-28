@@ -11,6 +11,15 @@ type Config struct {
 	PokemonCaught map[string]Pokemon
 }
 
+type Battler struct {
+	Health     int
+	Attack     int
+	Defense    int
+	Parry      int
+	Experience int
+	Name       string
+}
+
 type Direction int
 
 const (

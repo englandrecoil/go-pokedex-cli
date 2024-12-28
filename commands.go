@@ -68,13 +68,18 @@ var commands = map[string]command{
 	},
 	"pokedex": {
 		name:        "pokedex",
-		description: "Displays all caught Pokemon",
+		description: "Displays all caught Pokémon",
 		callback:    commandPokedex,
 	},
 	"color": {
 		name:        "color",
 		description: "Configures the display of color output",
 		callback:    commandColor,
+	},
+	"battle": {
+		name:        "battle {pokemon_name} {pokemon_name}",
+		description: "Simulate battles between captured Pokémon",
+		callback:    commandBattle,
 	},
 }
 
@@ -83,7 +88,7 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 	defer color.Unset()
 
 	fmt.Println("Usage:")
-	fmt.Println("  pokedex\t\t\tDisplays all caught Pokemon")
+	fmt.Println("  pokedex\t\t\tDisplays all caught Pokémon")
 	fmt.Println()
 	fmt.Println("  map\t\t\t\tDisplays the names of the next 20 location areas")
 	fmt.Println()
@@ -91,9 +96,12 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 	fmt.Println()
 	fmt.Println("  explore {location_area}\tDisplays all the Pokémon in a given area")
 	fmt.Println()
-	fmt.Println("  inspect {pokemon_name}\tInspect the caught pokemon\t")
+	fmt.Println("  inspect {pokemon_name}\tInspect the caught Pokémon\t")
 	fmt.Println()
-	fmt.Println("  catch {pokemon_name}\t\tCatch Pokemon with a certain chance")
+	fmt.Println("  catch {pokemon_name}\t\tCatch Pokémon with a certain chance")
+	fmt.Println()
+	fmt.Println("  battle {pokemon_name}\t\tSimulate battles between two captured Pokémon")
+	fmt.Println("  {pokemon_name}")
 	fmt.Println()
 	fmt.Println("  help\t\t\t\tDisplays a help message")
 	fmt.Println()
@@ -104,7 +112,7 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 	fmt.Println("  cache {integer_number}\tSet the caching interval(in hours) after which")
 	fmt.Println("  \t\t\t\tcleaning will occur (default value is 1 hour)")
 	fmt.Println()
-	fmt.Println("  color {on/of}\t\t\tConfigures the display of color output. Only works")
+	fmt.Println("  color {on/off}\t\tConfigures the display of color output. Only works")
 	fmt.Println("  \t\t\t\tif the environment variable 'NO_COLOR' is empty")
 	fmt.Println("  \t\t\t\t(default option is set to the NO_COLORS value)")
 	fmt.Println()
@@ -214,7 +222,7 @@ func commandExplore(cfg *pokeapi.Config, params ...string) error {
 	color.Unset()
 
 	for _, value := range location.PokemonEncounters {
-		fmt.Printf(" - " + value.Pokemon.Name + "\n")
+		fmt.Printf(" - "+"%s"+"\n", value.Pokemon.Name)
 	}
 	return nil
 }
@@ -237,7 +245,7 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 		return fmt.Errorf("catch command error: %s", err)
 	}
 
-	const treshold = 50
+	const treshold = 40
 	chance := rand.IntN(pokemon.BaseExperience) + treshold
 
 	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
@@ -254,6 +262,7 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 
 func commandInspect(cfg *pokeapi.Config, params ...string) error {
 	color.Set(color.FgBlue)
+	defer color.Unset()
 
 	if len(params) == 1 {
 		return errors.New("inspect command error: no Pokemon name provided")
@@ -263,6 +272,8 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 		fmt.Println("You have not caught that pokemon!")
 		return nil
 	}
+
+	color.Set(color.FgBlue)
 
 	pokemon, err := pokeapi.GetPokemon(cfg, params[1])
 	if err != nil {
@@ -310,6 +321,86 @@ func commandPokedex(cfg *pokeapi.Config, params ...string) error {
 	fmt.Println("Your pokedex:")
 	for _, value := range cfg.PokemonCaught {
 		fmt.Println(" - " + value.Name)
+	}
+
+	return nil
+}
+
+func commandBattle(cfg *pokeapi.Config, params ...string) error {
+	color.Set(color.FgBlue)
+	defer color.Unset()
+
+	if len(params) < 3 {
+		return errors.New("battle command error: no Pokemon names provided")
+	}
+	if len(params) > 3 {
+		return errors.New("battle command error: wrong number of arguments. Type `help` to to see available commands")
+	}
+
+	_, existsFirst := cfg.PokemonCaught[params[1]]
+	_, existsSecond := cfg.PokemonCaught[params[2]]
+	if !existsFirst {
+		fmt.Printf("%s is not in your Pokedex!\n", params[1])
+	}
+	if !existsSecond {
+		fmt.Printf("%s is not in your Pokedex!\n", params[2])
+	}
+	if !(existsFirst && existsSecond) {
+		return nil
+	}
+
+	firstPokemon, err := pokeapi.GetPokemon(cfg, params[1])
+	if err != nil {
+		return fmt.Errorf("battle command error: %s", err)
+	}
+	secondPokemon, err := pokeapi.GetPokemon(cfg, params[2])
+	if err != nil {
+		return fmt.Errorf("battle command error: %s", err)
+	}
+
+	color.Set(color.FgBlue)
+	defer color.Unset()
+
+	fmt.Printf("The %s vs %s battle has begun\n", params[1], params[2])
+
+	firstContestant := pokeapi.Battler{}
+	firstContestant.Experience = firstPokemon.BaseExperience
+	firstContestant.Name = firstPokemon.Name
+	for _, value := range firstPokemon.Stats {
+		switch value.Stat.Name {
+		case "hp":
+			firstContestant.Health = value.BaseStat
+		case "attack":
+			firstContestant.Attack = value.BaseStat
+		case "defense":
+			firstContestant.Defense = value.BaseStat
+		case "special-defense":
+			firstContestant.Parry = value.BaseStat
+		default:
+			continue
+		}
+	}
+
+	secondContestant := pokeapi.Battler{}
+	secondContestant.Experience = secondPokemon.BaseExperience
+	secondContestant.Name = secondPokemon.Name
+	for _, value := range secondPokemon.Stats {
+		switch value.Stat.Name {
+		case "hp":
+			secondContestant.Health = value.BaseStat
+		case "attack":
+			secondContestant.Attack = value.BaseStat
+		case "defense":
+			secondContestant.Defense = value.BaseStat
+		case "special-defense":
+			secondContestant.Parry = value.BaseStat
+		default:
+			continue
+		}
+	}
+
+	if err = startBattle(firstContestant, secondContestant); err != nil {
+		return fmt.Errorf("battle command error: failed to start battle: %s", err)
 	}
 
 	return nil

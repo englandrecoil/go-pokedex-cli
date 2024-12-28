@@ -31,7 +31,7 @@ func printWelcomeMessage() {
 	fmt.Println("Color support is based on your environment settings.")
 	fmt.Println("If you have set 'NO_COLOR=1', colors will be disabled.")
 	fmt.Println()
-	fmt.Println("Use 'help' command to find out about Pokémon world exploration commands.")
+	fmt.Println("Use `help` command to find out about Pokémon world exploration commands.")
 	fmt.Println()
 }
 

@@ -236,6 +236,7 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 	}
 
 	if _, exists := cfg.PokemonCaught[params[1]]; exists {
+		color.Set(color.FgRed)
 		fmt.Printf("You already caught %s!\n", params[1])
 		return nil
 	}
@@ -249,12 +250,16 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 	chance := rand.IntN(pokemon.BaseExperience) + treshold
 
 	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
+
 	if pokemon.BaseExperience > chance {
+		color.Set(color.FgRed)
 		fmt.Printf("%s escaped!\n", pokemon.Name)
 		delete(cfg.PokemonCaught, pokemon.Name)
 		return nil
 	}
+	color.Set(color.FgGreen)
 	fmt.Printf("%s was caught!\n", pokemon.Name)
+	color.Set(color.FgBlue)
 	fmt.Println("You may now inspect it with the 'inspect' command.")
 
 	return nil
@@ -273,22 +278,20 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 		return nil
 	}
 
-	color.Set(color.FgBlue)
-
 	pokemon, err := pokeapi.GetPokemon(cfg, params[1])
 	if err != nil {
 		return fmt.Errorf("inspect command error: %s", err)
 	}
 
-	fmt.Printf("Name: %s\n", pokemon.Name)
-	fmt.Printf("Height: %d\n", pokemon.Height)
-	fmt.Printf("Weight: %d\n", pokemon.Weight)
-	fmt.Println("Stats:")
+	fmt.Println(color.BlueString("Name: ") + pokemon.Name)
+	fmt.Println(color.BlueString("Height: ") + strconv.Itoa(pokemon.Height))
+	fmt.Println(color.BlueString("Weight: ") + strconv.Itoa(pokemon.Weight))
+	fmt.Println(color.BlueString("Stats: "))
 
 	for _, value := range pokemon.Stats {
-		fmt.Printf(" - "+"%s: "+"%d\n", value.Stat.Name, value.BaseStat)
+		fmt.Printf(" - "+color.BlueString("%s: ")+"%d\n", value.Stat.Name, value.BaseStat)
 	}
-	fmt.Println("Types:")
+	fmt.Println(color.BlueString("Types: "))
 	for _, value := range pokemon.Types {
 		fmt.Printf(" - "+"%s\n", value.Type.Name)
 	}
@@ -298,8 +301,7 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 		return err
 	}
 
-	fmt.Println("Image:")
-	color.Unset()
+	fmt.Println(color.BlueString("Image: "))
 
 	if err = pokedraw.DisplayImage(image); err != nil {
 		return fmt.Errorf("display image error: %s", err)
@@ -310,15 +312,13 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandPokedex(cfg *pokeapi.Config, params ...string) error {
-	color.Set(color.FgBlue)
-	defer color.Unset()
 
 	if len(cfg.PokemonCaught) == 0 {
-		fmt.Println("Your pokedex is empty! Try to catch Pokemon with 'catch' command")
+		fmt.Println(color.BlueString("Your pokedex is empty! Try to catch Pokemon with 'catch' command"))
 		return nil
 	}
 
-	fmt.Println("Your pokedex:")
+	fmt.Println(color.BlueString("Your pokedex:"))
 	for _, value := range cfg.PokemonCaught {
 		fmt.Println(" - " + value.Name)
 	}

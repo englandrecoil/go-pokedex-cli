@@ -2,7 +2,7 @@
 
 **Pokedex CLI** lets you explore the Pokémon world, discover new locations, and catch and track Pokémon in your Pokedex. It uses caching, PokeAPI to fetch data, and generates ASCII images of the Pokémon you catch - all in terminal!
 
-<img src="https://iili.io/2MTNJ4V.jpg" width="550">
+<img src="https://iili.io/2kUY73B.png" width="550">
 
 ## :minidisc: Installation
 To use, follow these steps:

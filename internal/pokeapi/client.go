@@ -76,6 +76,7 @@ func GetPokemon(cfg *Config, pokemonName string) (pokemon Pokemon, err error) {
 	url := "https://pokeapi.co/api/v2/pokemon/" + pokemonName
 	pokemon = Pokemon{}
 
+	// is exists in cache
 	if data, exists := cfg.Cache.Get(url); exists {
 		if err = json.Unmarshal(data, &pokemon); err != nil {
 			return pokemon, fmt.Errorf("error decoding cached data: %s", err)
@@ -84,20 +85,25 @@ func GetPokemon(cfg *Config, pokemonName string) (pokemon Pokemon, err error) {
 		return pokemon, nil
 	}
 
+	// is exists in map(locally stored in user file system)
+	if pokemonData, existsInMap := cfg.PokemonCaught[pokemonName]; existsInMap {
+		return pokemonData, nil
+	}
+
 	if err = makeAPICall(url, &pokemon, cfg); err != nil {
 		return pokemon, err
 	}
 
 	cfg.PokemonCaught[pokemonName] = pokemon
-
 	return pokemon, nil
-
 }
 
 func GetImage(cfg *Config, url string) (image []byte, err error) {
 	if data, exists := cfg.Cache.Get(url); exists {
 		return data, nil
 	}
+
+	// TODO: check if data is in PokemonCaught map
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -123,7 +129,6 @@ func GetImage(cfg *Config, url string) (image []byte, err error) {
 	cfg.Cache.Add(url, bodyData)
 
 	return bodyData, nil
-
 }
 
 func makeAPICall[T any](url string, target *T, cfg *Config) error {

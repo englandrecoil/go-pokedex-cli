@@ -246,6 +246,11 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 		return fmt.Errorf("catch command error: %s", err)
 	}
 
+	_, err = pokeapi.GetImage(cfg, pokemon.Sprites.Other.OfficialArtwork.FrontDefault)
+	if err != nil {
+		return err
+	}
+
 	const treshold = 40
 	chance := rand.IntN(pokemon.BaseExperience) + treshold
 
@@ -312,7 +317,6 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 }
 
 func commandPokedex(cfg *pokeapi.Config, params ...string) error {
-
 	if len(cfg.PokemonCaught) == 0 {
 		fmt.Println(color.BlueString("Your pokedex is empty! Try to catch Pokemon with 'catch' command"))
 		return nil

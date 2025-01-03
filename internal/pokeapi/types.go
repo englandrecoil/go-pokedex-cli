@@ -91,6 +91,7 @@ type LocationArea struct {
 }
 
 type Pokemon struct {
+	Image     []byte
 	Abilities []struct {
 		Ability struct {
 			Name string `json:"name"`

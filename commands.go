@@ -246,11 +246,6 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 		return fmt.Errorf("catch command error: %s", err)
 	}
 
-	_, err = pokeapi.GetImage(cfg, pokemon.Sprites.Other.OfficialArtwork.FrontDefault)
-	if err != nil {
-		return err
-	}
-
 	const treshold = 40
 	chance := rand.IntN(pokemon.BaseExperience) + treshold
 
@@ -259,13 +254,13 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 	if pokemon.BaseExperience > chance {
 		color.Set(color.FgRed)
 		fmt.Printf("%s escaped!\n", pokemon.Name)
-		delete(cfg.PokemonCaught, pokemon.Name)
 		return nil
 	}
 	color.Set(color.FgGreen)
 	fmt.Printf("%s was caught!\n", pokemon.Name)
 	color.Set(color.FgBlue)
 	fmt.Println("You may now inspect it with the 'inspect' command.")
+	cfg.PokemonCaught[pokemon.Name] = pokemon
 
 	return nil
 }
@@ -296,18 +291,15 @@ func commandInspect(cfg *pokeapi.Config, params ...string) error {
 	for _, value := range pokemon.Stats {
 		fmt.Printf(" - "+color.BlueString("%s: ")+"%d\n", value.Stat.Name, value.BaseStat)
 	}
+
 	fmt.Println(color.BlueString("Types: "))
 	for _, value := range pokemon.Types {
 		fmt.Printf(" - "+"%s\n", value.Type.Name)
 	}
 
-	image, err := pokeapi.GetImage(cfg, pokemon.Sprites.Other.OfficialArtwork.FrontDefault)
-	if err != nil {
-		return err
-	}
-
 	fmt.Println(color.BlueString("Image: "))
 
+	image := cfg.PokemonCaught[pokemon.Name].Image
 	if err = pokedraw.DisplayImage(image); err != nil {
 		return fmt.Errorf("display image error: %s", err)
 	}

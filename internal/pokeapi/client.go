@@ -81,7 +81,6 @@ func GetPokemon(cfg *Config, pokemonName string) (pokemon Pokemon, err error) {
 		if err = json.Unmarshal(data, &pokemon); err != nil {
 			return pokemon, fmt.Errorf("error decoding cached data: %s", err)
 		}
-		cfg.PokemonCaught[pokemonName] = pokemon
 		return pokemon, nil
 	}
 
@@ -94,17 +93,23 @@ func GetPokemon(cfg *Config, pokemonName string) (pokemon Pokemon, err error) {
 		return pokemon, err
 	}
 
-	cfg.PokemonCaught[pokemonName] = pokemon
+	image, err := getImage(cfg, pokemon.Sprites.Other.OfficialArtwork.FrontDefault)
+	if err != nil {
+		return pokemon, err
+	}
+	pokemon.Image = image
+
+	// we need to marshall pokemon image data so that we can add it to cache(data in cache is stored in json []byte)
+	pokemonData, err := json.Marshal(pokemon)
+	if err != nil {
+		return pokemon, err
+	}
+	cfg.Cache.Add(url, pokemonData)
+
 	return pokemon, nil
 }
 
-func GetImage(cfg *Config, url string) (image []byte, err error) {
-	if data, exists := cfg.Cache.Get(url); exists {
-		return data, nil
-	}
-
-	// TODO: check if data is in PokemonCaught map
-
+func getImage(cfg *Config, url string) (image []byte, err error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("can't initialize request for server: %s", err)
@@ -154,7 +159,6 @@ func makeAPICall[T any](url string, target *T, cfg *Config) error {
 	}
 
 	cfg.Cache.Add(url, bodyData)
-
 	if err = json.Unmarshal(bodyData, target); err != nil {
 		return fmt.Errorf("error decoding response body: %s", err)
 	}

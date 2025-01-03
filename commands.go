@@ -11,6 +11,7 @@ import (
 
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokeapi"
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokedraw"
+	"github.com/englandrecoil/go-pokedex-cli/internal/pokesave"
 	"github.com/fatih/color"
 )
 
@@ -120,6 +121,9 @@ func commandHelp(cfg *pokeapi.Config, param ...string) error {
 }
 
 func commandExit(cfg *pokeapi.Config, params ...string) error {
+	if err := pokesave.SaveProgress(cfg); err != nil {
+		return fmt.Errorf("can't save progress before exiting: %w", err)
+	}
 	defer os.Exit(0)
 	return nil
 }
@@ -261,7 +265,9 @@ func commandCatch(cfg *pokeapi.Config, params ...string) error {
 	color.Set(color.FgBlue)
 	fmt.Println("You may now inspect it with the 'inspect' command.")
 	cfg.PokemonCaught[pokemon.Name] = pokemon
-
+	if err = pokesave.SaveProgress(cfg); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokeapi"
 	"github.com/englandrecoil/go-pokedex-cli/internal/pokecache"
+	"github.com/englandrecoil/go-pokedex-cli/internal/pokesave"
 	"github.com/fatih/color"
 )
 
@@ -66,6 +67,10 @@ func main() {
 		PreviousURL:   nil,
 		Cache:         pokecache.NewCache(time.Duration(interval) * time.Hour),
 		PokemonCaught: make(map[string]pokeapi.Pokemon),
+	}
+
+	if err := pokesave.LoadProgress(cfg); err != nil {
+		fmt.Println("No saves found")
 	}
 
 	reader := bufio.NewScanner(os.Stdin)

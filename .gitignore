@@ -2,7 +2,7 @@ pokedex
 *.dll
 *.so
 *.dylib
-
+pokedex.json
 *.test
 *_test.go
 

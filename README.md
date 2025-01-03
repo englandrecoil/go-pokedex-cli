@@ -31,6 +31,6 @@ The list of available commands can also be found additionally below:
 
 ## :spiral_notepad: Future improvements and enhancements
 - [X] Simulate battles between captured Pokémon
-- [ ] Save progress between sessions by saving the user's Pokédex to disk
+- [X] Save progress between sessions by saving the user's Pokédex to disk
 - [ ] Improve ASCII art generation
 - [X] Add 'clear' command support for Windows

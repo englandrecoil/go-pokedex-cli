@@ -17,20 +17,25 @@ func DisplayImage(data []byte) error {
 
 	ramp := " .=+#@"
 	max := img.Bounds().Max
-	scaleX, scaleY := 20, 10
+	scaleX, scaleY := 16, 8
 
 	var asciiArt []string
 	for y := 0; y < max.Y; y += scaleX {
 		var row strings.Builder
 		for x := 0; x < max.X; x += scaleY {
 			c := avgPixel(img, x, y, scaleX, scaleY)
-			row.WriteByte(ramp[len(ramp)*c/65536])
+			r, g, b := getRGB(img.At(x, y))
+			symbol := string(ramp[len(ramp)*c/65536])
+			row.WriteString(colorizeSymbol(symbol, r, g, b))
 		}
 		asciiArt = append(asciiArt, row.String())
 	}
 
 	trimmedArt := trimAsciiArt(asciiArt)
 	for _, line := range trimmedArt {
+		if line == trimmedArt[0] {
+			continue
+		}
 		fmt.Println(line)
 	}
 
@@ -51,6 +56,15 @@ func avgPixel(img image.Image, x, y, w, h int) int {
 func grayscale(c color.Color) int {
 	r, g, b, _ := c.RGBA()
 	return int((r + g + b) / 3)
+}
+
+func getRGB(c color.Color) (int, int, int) {
+	r, g, b, _ := c.RGBA()
+	return int(r / 256), int(g / 256), int(b / 256)
+}
+
+func colorizeSymbol(symbol string, r, g, b int) string {
+	return fmt.Sprintf("\x1b[38;2;%d;%d;%dm%s\x1b[0m", r, g, b, symbol)
 }
 
 func trimAsciiArt(asciiArt []string) []string {
@@ -79,9 +93,24 @@ func trimAsciiArt(asciiArt []string) []string {
 		}
 	}
 
+	if left == -1 || right == -1 {
+		return asciiArt[top:bottom]
+	}
+
+	if left < 0 {
+		left = 0
+	}
+	if right >= len(asciiArt[0]) {
+		right = len(asciiArt[0]) - 1
+	}
+
 	var trimmedArt []string
 	for _, line := range asciiArt[top : bottom+1] {
-		trimmedArt = append(trimmedArt, line[left:right+1])
+		if right < len(line) {
+			trimmedArt = append(trimmedArt, line[left:right+1])
+		} else {
+			trimmedArt = append(trimmedArt, line[left:])
+		}
 	}
 
 	return trimmedArt

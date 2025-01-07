@@ -3,7 +3,7 @@
 **Pokedex CLI** lets you explore the Pokémon world, discover new locations, and catch and track Pokémon in your Pokedex. It uses caching, PokeAPI to fetch data, and generates ASCII images of the Pokémon you catch - all in terminal!
 
 <img src="https://iili.io/2g8pbwu.jpg" width="550">
-2
+
 ## :minidisc: Installation
 To use, follow these steps:
 1. Paste `git clone https://github.com/englandrecoil/go-pokedex-cli.git` in your terminal

@@ -1,5 +1,5 @@
 # go-pokedex-cli
-[![en](https://img.shields.io/badge/lang-en-green?style=flat)](https://github.com/englandrecoil/go-pokedex-cli/edit/main/README.md#go-pokedex-cli)
+[![en](https://img.shields.io/badge/lang-en-green?style=flat)](https://github.com/englandrecoil/go-pokedex-cli/blob/main/README.md)
 [![ru](https://img.shields.io/badge/lang-ru-blue?style=flat)](https://github.com/englandrecoil/go-pokedex-cli/blob/main/README.ru.md#go-pokedex-cli)
 
 **Pokedex CLI** lets you explore the Pokémon world, discover new locations, and catch and track Pokémon in your Pokedex. It uses caching, PokeAPI to fetch data, and generates ASCII images of the Pokémon you catch - all in terminal!

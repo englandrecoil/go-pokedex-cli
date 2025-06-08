@@ -1,5 +1,5 @@
 # go-pokedex-cli
-[![en](https://img.shields.io/badge/lang-en-green?style=flat)](https://github.com/englandrecoil/go-pokedex-cli/edit/main/README.md#go-pokedex-cli)
+[![en](https://img.shields.io/badge/lang-en-green?style=flat)](https://github.com/englandrecoil/go-pokedex-cli/blob/main/README.md)
 
 **Pokedex CLI** позволяет исследовать мир покемонов, открывать новые локации, ловить и отслеживать покемонов в вашем Покедексе. Он использует кэширование, PokeAPI для получения данных и генерирует ASCII-изображения пойманных покемонов — всё прямо в терминале!
 
